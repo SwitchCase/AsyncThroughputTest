@@ -14,8 +14,8 @@ We do this through 3 components:
 
 ## Java Service
 * Supports 2 endpoints:
-** POST /sync: The orchestration is constructed using blocking calls to the Py service using Futures.
-** POST /async: The orchestration is constructed using non-blocking callbacks through CompleteableFutures.
+* * POST /sync: The orchestration is constructed using blocking calls to the Py service using Futures.
+* * POST /async: The orchestration is constructed using non-blocking callbacks through CompleteableFutures.
 
 ## K6 Load Test
 * Creates random requests to hit the desired endpoint.
