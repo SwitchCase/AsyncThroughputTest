@@ -1,6 +1,5 @@
 package com.switchcase.asyncthroughput;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.switchcase.asyncthroughput.client.TeaServiceClient;
 import com.switchcase.asyncthroughput.client.request.BoilMilkRequest;
 import com.switchcase.asyncthroughput.client.request.BoilWaterRequest;
@@ -19,7 +18,6 @@ import java.util.concurrent.Future;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import retrofit2.Response;
 
 @org.springframework.stereotype.Service
@@ -29,13 +27,10 @@ public class SynchronousService {
     private final TeaServiceClient teaServiceClient;
     private final ExecutorService executorService;
 
-    private final ObjectMapper mapper;
-
-    public SynchronousService(TeaServiceClient teaServiceClient, ExecutorService executorService,
-                              @Autowired ObjectMapper mapper) {
+    public SynchronousService(TeaServiceClient teaServiceClient,
+                              ExecutorService executorService) {
         this.teaServiceClient = teaServiceClient;
         this.executorService = executorService;
-        this.mapper = mapper;
     }
 
     public MilkTea execute(String id, MilkTeaSpecRequest request) {

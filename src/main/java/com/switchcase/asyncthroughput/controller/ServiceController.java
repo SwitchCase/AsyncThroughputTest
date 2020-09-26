@@ -5,8 +5,10 @@ import com.switchcase.asyncthroughput.SynchronousService;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -38,4 +40,14 @@ public class ServiceController {
         return asynchronousService.executeAsync(UUID.randomUUID().toString(), request)
                 .thenApply(milkTea -> new MilkTeaSpecResponse(milkTea.getMilkTea()));
     }
+
+    @GetMapping("/test")
+    public @ResponseBody CompletableFuture<String> test() throws InterruptedException {
+        CompletableFuture<Boolean> boolean1= asynchronousService.veryLongMethod();
+        CompletableFuture<Boolean> boolean2= asynchronousService.veryLongMethod();
+        CompletableFuture<Boolean> boolean3= asynchronousService.veryLongMethod();
+
+        return CompletableFuture.allOf(boolean1,boolean2,boolean3).thenApply(r -> "done");
+    }
+
 }

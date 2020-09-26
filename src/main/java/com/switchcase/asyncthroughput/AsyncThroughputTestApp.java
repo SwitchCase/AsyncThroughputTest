@@ -23,7 +23,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 public class AsyncThroughputTestApp {
 
-    static final Injector INJECTOR = Guice.createInjector(new TeaServiceAsyncClientModule(), new TeaServiceClientModule(), new RetrofitBuilderModule());
+    final Injector INJECTOR = Guice.createInjector(new TeaServiceAsyncClientModule(), new TeaServiceClientModule(), new RetrofitBuilderModule());
 
     public static void main(String[] args) {
         // close the application context to shut down the custom ExecutorService
