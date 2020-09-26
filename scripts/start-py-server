@@ -1,0 +1,1 @@
+docker image build src/main/python/Python-mock-server -t py-mock-server-aa && docker run -p9900:8080  py-mock-server-aa
