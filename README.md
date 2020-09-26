@@ -19,3 +19,11 @@ We do this through 3 components:
 
 ## K6 Load Test
 * Creates random requests to hit the desired endpoint.
+
+## How To Run
+Run the following steps in order:
+* To start the Python/Docker based server: ```./scripts/start-py-server```
+* To start the SpringBoot based app server: ```./scripts/start-spring-server```
+* To run the load tests:
+    * Sync load tests: ```./scripts/start-load-tests-sync --duration 1m --vus 100``` for 1 minute with 100 vus.
+    * Async load tests: ```./scripts/start-load-tests-async --duration 1m --vus 100``` for 1 minute with 100 vus.
