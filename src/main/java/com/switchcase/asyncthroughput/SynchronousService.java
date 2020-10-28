@@ -15,20 +15,22 @@ import com.switchcase.asyncthroughput.types.TeaSpec;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import javax.inject.Inject;
+import javax.inject.Named;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Response;
 
-@org.springframework.stereotype.Service
 public class SynchronousService {
     private static final Logger logger = LoggerFactory.getLogger(SynchronousService.class);
 
     private final TeaServiceClient teaServiceClient;
     private final ExecutorService executorService;
 
+    @Inject
     public SynchronousService(TeaServiceClient teaServiceClient,
-                              ExecutorService executorService) {
+                              @Named("syncExec") ExecutorService executorService) {
         this.teaServiceClient = teaServiceClient;
         this.executorService = executorService;
     }

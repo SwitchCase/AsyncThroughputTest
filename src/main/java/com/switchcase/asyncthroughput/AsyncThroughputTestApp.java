@@ -1,5 +1,6 @@
 package com.switchcase.asyncthroughput;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -13,14 +14,13 @@ import com.switchcase.asyncthroughput.client.TeaServiceClientModule;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import org.asynchttpclient.AsyncHttpClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
-@EnableAsync
 public class AsyncThroughputTestApp {
 
     final Injector INJECTOR = Guice.createInjector(new TeaServiceAsyncClientModule(), new TeaServiceClientModule(), new RetrofitBuilderModule());
@@ -32,11 +32,11 @@ public class AsyncThroughputTestApp {
 
     @Bean("asyncExec")
     public Executor taskExecutor() {
-        //ForkJoinPool.getCommonPoolParallelism();
-        //return ForkJoinPool.commonPool();
+        ForkJoinPool.getCommonPoolParallelism();
+        return ForkJoinPool.commonPool();
 
-        ThreadFactoryBuilder builder = new ThreadFactoryBuilder();
-        return Executors.newFixedThreadPool(100, builder.setNameFormat("async-exec-%d").build());
+        //ThreadFactoryBuilder builder = new ThreadFactoryBuilder();
+        //return Executors.newFixedThreadPool(100, builder.setNameFormat("async-exec-%d").build());
     }
 
     @Bean("syncExec")
@@ -48,7 +48,8 @@ public class AsyncThroughputTestApp {
 
     @Bean
     public ObjectMapper mapper() {
-        return new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        return new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+                   .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @Bean
@@ -64,5 +65,15 @@ public class AsyncThroughputTestApp {
     @Bean
     public TeaServiceClient teaServiceClient() {
         return INJECTOR.getInstance(TeaServiceClient.class);
+    }
+
+    @Bean
+    public AsynchronousServicev2 asynchronousServicev2(ObjectMapper mapper, AsyncHttpClient httpClient) {
+        return new AsynchronousServicev2(mapper, httpClient, taskExecutor());
+    }
+
+    @Bean
+    public SynchronousService synchronousService(TeaServiceClient teaServiceClient) {
+        return new SynchronousService(teaServiceClient, syncTaskExecutor());
     }
 }

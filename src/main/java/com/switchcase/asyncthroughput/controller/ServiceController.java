@@ -1,53 +1,48 @@
 package com.switchcase.asyncthroughput.controller;
 
-import com.switchcase.asyncthroughput.AsynchronousService;
 import com.switchcase.asyncthroughput.SynchronousService;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.MediaType;
+import org.glassfish.jersey.server.ManagedAsync;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
-@RestController
+@Service
+@Path("/")
 public class ServiceController {
 
     @Autowired
-    private final SynchronousService service;
+    private SynchronousService service;
 
+    @Qualifier("syncExec")
     @Autowired
-    private final AsynchronousService asynchronousService;
+    private ExecutorService executorService;
 
-    public ServiceController(SynchronousService service, AsynchronousService asynchronousService) {
-        this.service = service;
-        this.asynchronousService = asynchronousService;
-    }
-
-    @PostMapping("/sync")
-    public MilkTeaSpecResponse syncInvoke(@RequestBody MilkTeaSpecRequest request) {
+    @POST
+    @Path("/sync")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public MilkTeaSpecResponse syncInvoke(MilkTeaSpecRequest request) {
         return new MilkTeaSpecResponse(service.execute(UUID.randomUUID().toString(), request));
     }
 
-    @PostMapping("/async-sync")
-    public CompletableFuture<MilkTeaSpecResponse> asyncSyncInvoke(@RequestBody MilkTeaSpecRequest request) {
-        return CompletableFuture.supplyAsync(() -> new MilkTeaSpecResponse(service.execute(UUID.randomUUID().toString(), request)));
-    }
-
-    @PostMapping("/async")
-    public CompletableFuture<MilkTeaSpecResponse> asyncInvoke(@RequestBody MilkTeaSpecRequest request) {
-        return asynchronousService.executeAsync(UUID.randomUUID().toString(), request)
-                .thenApply(milkTea -> new MilkTeaSpecResponse(milkTea.getMilkTea()));
-    }
-
-    @GetMapping("/test")
-    public @ResponseBody CompletableFuture<String> test() throws InterruptedException {
-        CompletableFuture<Boolean> boolean1= asynchronousService.veryLongMethod();
-        CompletableFuture<Boolean> boolean2= asynchronousService.veryLongMethod();
-        CompletableFuture<Boolean> boolean3= asynchronousService.veryLongMethod();
-
-        return CompletableFuture.allOf(boolean1,boolean2,boolean3).thenApply(r -> "done");
+    @POST
+    @Path("/async-sync")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ManagedAsync
+    public void asyncSyncInvoke(@Suspended AsyncResponse asyncResponse, MilkTeaSpecRequest request) {
+        CompletableFuture.supplyAsync(() -> new MilkTeaSpecResponse(service.execute(UUID.randomUUID().toString(), request)), executorService)
+            .thenApply(asyncResponse::resume);
     }
 
 }

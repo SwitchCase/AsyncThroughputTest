@@ -19,28 +19,28 @@ import com.switchcase.asyncthroughput.types.MilkSpec;
 import com.switchcase.asyncthroughput.types.TeaSpec;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
+import javax.inject.Inject;
+import javax.inject.Named;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
 import retrofit2.Response;
 
-@Service
 public class AsynchronousService {
     private static final Logger logger = LoggerFactory.getLogger(AsynchronousService.class);
 
     private final TeaServiceAsyncClient teaServiceClient;
     private final TeaServiceClient syncClient;
     private final ObjectMapper mapper;
-    private final ExecutorService executorService;
+    private final Executor executorService;
 
-    public AsynchronousService(@Autowired TeaServiceAsyncClient teaServiceClient,
-                               @Autowired TeaServiceClient syncClient,
-                               @Autowired ObjectMapper mapper,
-                               @Autowired ExecutorService executorService) {
+    @Inject
+    public AsynchronousService(TeaServiceAsyncClient teaServiceClient,
+                               TeaServiceClient syncClient,
+                               ObjectMapper mapper,
+                               @Named("asyncExec") Executor executorService) {
         this.teaServiceClient = teaServiceClient;
         this.syncClient = syncClient;
         this.mapper = mapper;
@@ -52,13 +52,13 @@ public class AsynchronousService {
         logger.info("Running id = {}", id);
         //ideally - i want to run invoke() here which is a true async http client. But doing that seems to be worse than
         // the invokeSync with blocking. For some reason retrofit does not like working with CFs.
-        return invokeSync(request);
+        return invoke(request);
     }
 
     private CompletableFuture<MilkTeaResponse> invoke(MilkTeaSpecRequest request) {
         logger.info("Invoked request: {}", request);
         CompletableFuture<BrewTeaResponse> chain1 = boilWater(request.getTea().getQuantity())
-                                                        .thenComposeAsync(w -> brewTea(w.getWater(), request.getTea()));
+                                                        .thenComposeAsync(w -> brewTea(w.getWater(), request.getTea()), executorService);
         CompletableFuture<BoilMilkResponse> chain2 = boilMilk(request.getMilk());
 
         return CompletableFuture.allOf(chain1, chain2).thenComposeAsync(r -> {
@@ -68,7 +68,7 @@ public class AsynchronousService {
                 logger.error("Error executing invokeD. ", e);
                 throw new RuntimeException(e);
             }
-        });
+        }, executorService);
     }
 
     private CompletableFuture<MilkTeaResponse> invokeSync(MilkTeaSpecRequest request) {
