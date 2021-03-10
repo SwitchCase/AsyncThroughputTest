@@ -1,0 +1,3 @@
+# provide --duration 10m --vus 5 to run 5 vus for 10 minutes.
+
+MODE=async-sync k6 run src/main/k6/tea-service-load-test.js $@

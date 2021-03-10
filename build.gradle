@@ -52,6 +52,7 @@ dependencies {
     testImplementation 'org.objenesis:objenesis:1.4'
     testImplementation "cglib:cglib:2.2"
     testImplementation 'junit:junit:4.13'
+    testImplementation 'org.mock-server:mockserver-netty:5.11.1'
 }
 
 application {
