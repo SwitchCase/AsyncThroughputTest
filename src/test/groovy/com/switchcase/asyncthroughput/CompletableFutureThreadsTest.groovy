@@ -10,6 +10,8 @@ import spock.lang.Specification
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -45,7 +47,38 @@ class CompletableFutureThreadsTest extends Specification {
         exception.getCause() instanceof TimeoutException
     }
 
-    def "Calls using 2 AHC with a blocking call with 1sec timeout DOES NOT results in TimeoutException."() {
+    def "Calls using one AHC with a blocking call on ForkJoinPool with 1sec timeout results in success."() {
+        when:
+        def value = callExternal().thenApplyAsync({ resp -> callExternalBlocking() }).join()
+
+        then:
+        value == "done"
+    }
+
+    def "Calls using one AHC with a blocking call on a dedicated threadpool with 1sec timeout results in success."() {
+        when:
+        ExecutorService executorService = Executors.newFixedThreadPool(1)
+        def value = callExternal().thenApplyAsync({ resp -> callExternalBlocking() }, executorService).join()
+
+        then:
+        value == "done"
+    }
+
+    def "Multiple Calls using one AHC with a blocking call on a dedicated threadpool with 1sec timeout results in success."() {
+        when:
+        ExecutorService executorService = Executors.newFixedThreadPool(1)
+        def value = CompletableFuture.allOf(callExternal().thenApplyAsync({ resp -> callExternalBlocking() }, executorService),
+                callExternal().thenApplyAsync({ resp -> callExternalBlocking() }, executorService),
+                callExternal().thenApplyAsync({ resp -> callExternalBlocking() }, executorService),
+                callExternal().thenApplyAsync({ resp -> callExternalBlocking() }, executorService),
+                callExternal().thenApplyAsync({ resp -> callExternalBlocking() }, executorService),
+                callExternal().thenApplyAsync({ resp -> callExternalBlocking() }, executorService))
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "Calls using 2 AHC with a blocking call with 1sec timeout results in success."() {
         when:
         def value = callExternal().thenApply({ resp -> callDifferentExternalBlocking() }).join()
 
