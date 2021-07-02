@@ -34,7 +34,7 @@ class CompletableFutureThreadsTest extends Specification {
                 .withPath("/validate"))
                 .respond(HttpResponse.response().withBody("done")
                         .withStatusCode(200)
-                        .withDelay(TimeUnit.MILLISECONDS, 100));
+                        .withDelay(TimeUnit.MILLISECONDS, 10));
     }
 
     def "Calls using one AHC with a blocking call with 1sec timeout results in TimeoutException."() {
@@ -45,6 +45,7 @@ class CompletableFutureThreadsTest extends Specification {
         def exception = thrown(CompletionException)
         exception instanceof CompletionException
         exception.getCause() instanceof TimeoutException
+        exception.printStackTrace()
     }
 
     def "Calls using one AHC with a blocking call on ForkJoinPool with 1sec timeout results in success."() {
@@ -90,23 +91,29 @@ class CompletableFutureThreadsTest extends Specification {
         mockServer.stop(true)
     }
 
-    private CompletableFuture<String> callExternal() {
+    private CompletableFuture<String> callExternal(def timeout = 1000) {
         RequestBuilder requestBuilder = RequestBuilder.newInstance();
-        requestBuilder.setMethod("POST").setUrl("http://localhost:9192/validate").setRequestTimeout(1000)
+        requestBuilder.setMethod("POST").setUrl("http://localhost:9192/validate").setRequestTimeout(timeout)
         def cf = asyncHttpClient.executeRequest(requestBuilder).toCompletableFuture()
-        return cf.thenApply({ response -> response.getResponseBody(Charsets.UTF_8) })
+        return cf.thenApply({ response ->
+            println("CallExternal Succeeded.")
+            return response.getResponseBody(Charsets.UTF_8)
+        })
     }
 
-    private String callExternalBlocking() {
+    private String callExternalBlocking(def timeout = 1000) {
         RequestBuilder requestBuilder = RequestBuilder.newInstance();
-        requestBuilder.setMethod("POST").setUrl("http://localhost:9192/validate").setRequestTimeout(1000)
+        requestBuilder.setMethod("POST").setUrl("http://localhost:9192/validate").setRequestTimeout(timeout)
         def cf = asyncHttpClient.executeRequest(requestBuilder).toCompletableFuture()
-        return cf.thenApply({ response -> response.getResponseBody(Charsets.UTF_8) }).join()
+        return cf.thenApply({ response ->
+            println("CallExternalBlocking! Succeeded.")
+            return response.getResponseBody(Charsets.UTF_8)
+        }).join()
     }
 
-    private String callDifferentExternalBlocking() {
+    private String callDifferentExternalBlocking(def timeout = 1000) {
         RequestBuilder requestBuilder = RequestBuilder.newInstance();
-        requestBuilder.setMethod("POST").setUrl("http://localhost:9192/validate").setRequestTimeout(1000)
+        requestBuilder.setMethod("POST").setUrl("http://localhost:9192/validate").setRequestTimeout(timeout)
         def cf = asyncHttpClient2.executeRequest(requestBuilder).toCompletableFuture()
         return cf.thenApply({ response -> response.getResponseBody(Charsets.UTF_8) }).join()
     }
