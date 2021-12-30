@@ -103,7 +103,7 @@ class CompletableFutureThreadsTest extends Specification {
 
     private String callExternalBlocking(def timeout = 1000) {
         RequestBuilder requestBuilder = RequestBuilder.newInstance();
-        requestBuilder.setMethod("POST").setUrl("http://localhost:9192/validate").setRequestTimeout(timeout)
+        requestBuilder.setMethod("POST").setUrl("http://google.com").setRequestTimeout(timeout)
         def cf = asyncHttpClient.executeRequest(requestBuilder).toCompletableFuture()
         return cf.thenApply({ response ->
             println("CallExternalBlocking! Succeeded.")

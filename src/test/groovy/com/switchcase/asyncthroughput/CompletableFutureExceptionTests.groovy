@@ -45,6 +45,35 @@ class CompletableFutureExceptionTests extends Specification {
         exception.getCause().getMessage() == "mock exception 2"
     }
 
+    def "CF throwing exceptions"() {
+        when:
+            new ThrowsExceptions().throwsException(exception)
+        then:
+            thrown(exception.getClass())
+        where:
+        exception << [new RuntimeException(), new Exception(), new Throwable(), new CompletionException()]
+
+    }
+
+    def "CF throwing exceptions in exceptionally"() {
+        expect:
+        new ThrowsExceptions().throwsException(exception)
+                .exceptionally({ e ->
+                    log.info("Got E: ", e)
+                })
+
+        where:
+        exception << [new RuntimeException(), new Exception(), new Throwable(), new CompletionException()]
+
+    }
+
+    class ThrowsExceptions {
+        CompletableFuture<Void> throwsException(Throwable t) {
+            throw t;
+        }
+    }
+
+
     def logAndReturn(String str) {
         log.info(str)
         return str;
