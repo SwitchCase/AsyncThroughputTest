@@ -1,13 +1,19 @@
 
 plugins {
-    id 'java'
+    id 'application'
     id 'org.springframework.boot' version '3.2.0'
 }
 
-apply plugin: 'java'
 apply plugin: 'io.spring.dependency-management'
 
-sourceCompatibility = 1.17
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+application {
+    mainClass = 'com.switchcase.asyncthroughput.AsyncThroughputTestApp'
+}
 
 sourceSets.main.java.srcDirs +='src/main/java'
 
@@ -24,6 +30,6 @@ dependencies {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 

@@ -1,6 +1,6 @@
 # FROM python:3.7.9-alpine3.12
 # FROM fnndsc/ubuntu-python3:latest
-FROM python:3.6-slim
+FROM python:3.10-slim
 
 RUN mkdir /opt/app
 

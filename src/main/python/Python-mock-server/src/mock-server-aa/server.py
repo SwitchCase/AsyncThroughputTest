@@ -7,7 +7,7 @@ import uuid
 from sanic import Sanic, response
 from scipy.stats import norm
 
-app = Sanic()
+app = Sanic(name="mock-server")
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] - %(message)s')
 logger = logging.getLogger("Server")
 
